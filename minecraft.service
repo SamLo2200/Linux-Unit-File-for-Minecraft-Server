@@ -1,0 +1,36 @@
+[Unit]
+Description=A Minecraft Server
+After=network-online.target
+
+[Service]
+WorkingDirectory=/opt/minecraft_server
+Type=forking
+
+# Choosing which user to run the process
+PrivateUsers=true
+
+User=minecraft
+Group=minecraft
+
+# Hardening
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Starting Minecraft Server
+ExecStart=/usr/bin/screen -dmS minecraft-server ./start.sh 
+
+# Stopping Minecraft Server
+ExecStop=/usr/bin/screen -p 0 -S minecraft-server -X stuff 'kick @a Server Maintance. Please check back later. ^M'
+ExecStop=/usr/bin/screen -p 0 -S minecraft-server -X stuff 'save-all ^M'
+ExecStop=/usr/bin/screen -p 0 -S minecraft-server -X stuff 'stop ^M'
+ExecStop=/bin/bash -c 'while /usr/bin/screen -list | grep -q "minecraft-server"; do sleep 1; done'
+
+# Handle failure
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
